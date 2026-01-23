@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/services"
+	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -13,31 +14,30 @@ func Checkout(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid user ID")
 		return
 	}
 
 	// Get the user's cart
 	cart, err := services.GetCart(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch cart"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to fetch cart")
 		return
 	}
 
 	if len(cart.Items) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cart is empty"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "cart is empty")
 		return
 	}
 
 	// Calculate total and create payment intent
 	checkoutSession, err := services.ProcessCheckout(userID, cart)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":      "checkout session created",
+	utils.SuccessResponse(c, http.StatusOK, "checkout session created", gin.H{
 		"checkout_url": checkoutSession.URL,
 		"session_id":   checkoutSession.ID,
 	})
@@ -48,33 +48,33 @@ func GetOrders(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid user ID")
 		return
 	}
 
 	orders, err := services.GetUserOrders(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch orders"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to fetch orders")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"orders": orders})
+	utils.SuccessResponse(c, http.StatusOK, "orders retrieved successfully", gin.H{"orders": orders})
 }
 
 // WebhookHandler handles Stripe webhook events
 func WebhookHandler(c *gin.Context) {
 	payload, err := c.GetRawData()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read request body"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "failed to read request body")
 		return
 	}
 
 	signature := c.GetHeader("Stripe-Signature")
 
 	if err := services.HandleStripeWebhook(payload, signature); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"received": true})
+	utils.SuccessResponse(c, http.StatusOK, "webhook processed", gin.H{"received": true})
 }
