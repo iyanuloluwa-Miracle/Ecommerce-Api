@@ -1,3 +1,23 @@
+// @title E-Commerce API
+// @version 1.0
+// @description A RESTful e-commerce API built with Go, Gin framework, MongoDB, and Stripe for payment processing.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url https://github.com/iyanuloluwa-Miracle/ecommerce-api
+// @contact.email support@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your bearer token in the format: Bearer {token}
+
 package main
 
 import (
@@ -6,7 +26,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/config"
+	_ "github.com/iyanuloluwa-Miracle/ecommerce-api/docs"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/routes"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -39,6 +62,9 @@ func main() {
 		c.Next()
 	})
 
+	// Swagger documentation route
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// Register routes
 	routes.RegisterRoutes(r)
 
@@ -49,6 +75,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on port %s", port)
+	log.Printf("Swagger docs available at http://localhost:%s/swagger/index.html", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
