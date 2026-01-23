@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/models"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/services"
+	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -23,19 +24,19 @@ func AddToCart(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid user ID")
 		return
 	}
 
 	var req AddToCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	productID, err := primitive.ObjectIDFromHex(req.ProductID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "invalid product ID")
 		return
 	}
 
@@ -45,11 +46,11 @@ func AddToCart(c *gin.Context) {
 	}
 
 	if err := services.AddToCart(userID, item); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "item added to cart"})
+	utils.SuccessResponse(c, http.StatusOK, "item added to cart", nil)
 }
 
 // RemoveFromCart removes an item from the user's cart
@@ -57,28 +58,28 @@ func RemoveFromCart(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid user ID")
 		return
 	}
 
 	var req RemoveFromCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	productID, err := primitive.ObjectIDFromHex(req.ProductID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "invalid product ID")
 		return
 	}
 
 	if err := services.RemoveFromCart(userID, productID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "item removed from cart"})
+	utils.SuccessResponse(c, http.StatusOK, "item removed from cart", nil)
 }
 
 // ViewCart returns the user's cart
@@ -86,15 +87,15 @@ func ViewCart(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid user ID")
 		return
 	}
 
 	cart, err := services.GetCart(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch cart"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to fetch cart")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"cart": cart})
+	utils.SuccessResponse(c, http.StatusOK, "cart retrieved successfully", gin.H{"cart": cart})
 }
