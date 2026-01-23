@@ -1,0 +1,48 @@
+# Air configuration file
+# Documentation: https://github.com/air-verse/air
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Command to build the project
+cmd = "go build -o ./tmp/main.exe ./cmd/server/main.go"
+# Binary file to run
+bin = "tmp/main.exe"
+# Watch these directories
+include_dir = ["cmd", "config", "internal"]
+# Watch these extensions
+include_ext = ["go", "tpl", "tmpl", "html"]
+# Exclude these directories
+exclude_dir = ["assets", "tmp", "vendor", "node_modules", "migrations"]
+# Exclude files matching these patterns
+exclude_file = []
+# Exclude unchanged files
+exclude_unchanged = true
+# Follow symbolic links
+follow_symlink = false
+# Delay before rebuild (in milliseconds)
+delay = 1000
+# Stop running old binary when build error occurs
+stop_on_error = true
+# Send interrupt signal before killing the process
+send_interrupt = true
+# Delay before sending kill signal (in milliseconds)
+kill_delay = 500
+
+[log]
+# Show build time
+time = true
+# Only show main log
+main_only = false
+
+[color]
+# Customize colors
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[misc]
+# Delete tmp directory on exit
+clean_on_exit = true
