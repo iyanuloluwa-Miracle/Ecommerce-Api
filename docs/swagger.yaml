@@ -1,0 +1,638 @@
+basePath: /api
+definitions:
+  controllers.AddToCartRequest:
+    description: Add item to cart request
+    properties:
+      product_id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      quantity:
+        example: 2
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  controllers.CreateProductRequest:
+    description: Create product request
+    properties:
+      description:
+        example: High-quality wireless headphones
+        type: string
+      name:
+        example: Wireless Headphones
+        type: string
+      price:
+        example: 99.99
+        type: number
+      stock:
+        example: 50
+        minimum: 0
+        type: integer
+    required:
+    - description
+    - name
+    - price
+    - stock
+    type: object
+  controllers.LoginRequest:
+    description: User login request
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  controllers.RegisterRequest:
+    description: User registration request
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  controllers.RemoveFromCartRequest:
+    description: Remove item from cart request
+    properties:
+      product_id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+    required:
+    - product_id
+    type: object
+  controllers.UpdateProductRequest:
+    description: Update product request
+    properties:
+      description:
+        example: Updated description
+        type: string
+      name:
+        example: Updated Product Name
+        type: string
+      price:
+        example: 149.99
+        type: number
+      stock:
+        example: 100
+        type: integer
+    type: object
+  models.Cart:
+    properties:
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/models.CartItem'
+        type: array
+      user_id:
+        type: string
+    type: object
+  models.CartItem:
+    properties:
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  models.Order:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/models.CartItem'
+        type: array
+      payment_status:
+        type: string
+      stripe_session:
+        type: string
+      total_amount:
+        type: number
+      user_id:
+        type: string
+    type: object
+  models.Product:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    type: object
+  utils.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: https://github.com/iyanuloluwa-Miracle/ecommerce-api
+  description: A RESTful e-commerce API built with Go, Gin framework, MongoDB, and
+    Stripe for payment processing.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: E-Commerce API
+  version: "1.0"
+paths:
+  /admin/products:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product in the catalog (admin only)
+      parameters:
+      - description: Product details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Product created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    product:
+                      $ref: '#/definitions/models.Product'
+                  type: object
+              type: object
+        "400":
+          description: Bad request - validation error
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new product
+      tags:
+      - Admin
+  /admin/products/{id}:
+    delete:
+      description: Delete a product by ID (admin only)
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product deleted successfully
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Invalid product ID
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a product
+      tags:
+      - Admin
+    put:
+      consumes:
+      - application/json
+      description: Update an existing product by ID (admin only)
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated product details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated successfully
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad request - invalid ID or validation error
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden - admin access required
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a product
+      tags:
+      - Admin
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful with JWT token
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    token:
+                      type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad request - validation error
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized - invalid credentials
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Login user
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email and password
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - validation error or user already exists
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Register a new user
+      tags:
+      - Authentication
+  /cart:
+    get:
+      description: Get the authenticated user's shopping cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    cart:
+                      $ref: '#/definitions/models.Cart'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: View cart
+      tags:
+      - Cart
+  /cart/add:
+    post:
+      consumes:
+      - application/json
+      description: Add a product to the authenticated user's shopping cart
+      parameters:
+      - description: Product and quantity to add
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.AddToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item added to cart
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad request - validation error or invalid product ID
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Add item to cart
+      tags:
+      - Cart
+  /cart/remove:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a product from the authenticated user's shopping cart
+      parameters:
+      - description: Product to remove
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RemoveFromCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item removed from cart
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad request - validation error or invalid product ID
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove item from cart
+      tags:
+      - Cart
+  /checkout:
+    post:
+      description: Process checkout and create a Stripe payment session for the user's
+        cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Checkout session created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    checkout_url:
+                      type: string
+                    session_id:
+                      type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad request - cart is empty
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create checkout session
+      tags:
+      - Checkout
+  /orders:
+    get:
+      description: Retrieve all orders for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Orders retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    orders:
+                      items:
+                        $ref: '#/definitions/models.Order'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user orders
+      tags:
+      - Orders
+  /products:
+    get:
+      description: Retrieve all products from the catalog
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Products retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    products:
+                      items:
+                        $ref: '#/definitions/models.Product'
+                      type: array
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all products
+      tags:
+      - Products
+  /products/{id}:
+    get:
+      description: Retrieve a single product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    product:
+                      $ref: '#/definitions/models.Product'
+                  type: object
+              type: object
+        "400":
+          description: Invalid product ID
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get product by ID
+      tags:
+      - Products
+  /webhook/stripe:
+    post:
+      consumes:
+      - application/json
+      description: Process Stripe webhook events for payment status updates
+      parameters:
+      - description: Stripe webhook signature
+        in: header
+        name: Stripe-Signature
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Webhook processed
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  properties:
+                    received:
+                      type: boolean
+                  type: object
+              type: object
+        "400":
+          description: Bad request - invalid signature or payload
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Handle Stripe webhook
+      tags:
+      - Webhooks
+securityDefinitions:
+  BearerAuth:
+    description: 'Enter your bearer token in the format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
