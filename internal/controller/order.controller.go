@@ -10,6 +10,16 @@ import (
 )
 
 // Checkout processes the checkout and creates an order with Stripe payment
+// @Summary Create checkout session
+// @Description Process checkout and create a Stripe payment session for the user's cart
+// @Tags Checkout
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=object{checkout_url=string,session_id=string}} "Checkout session created"
+// @Failure 400 {object} utils.Response "Bad request - cart is empty"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /checkout [post]
 func Checkout(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
@@ -44,6 +54,15 @@ func Checkout(c *gin.Context) {
 }
 
 // GetOrders returns all orders for the authenticated user
+// @Summary Get user orders
+// @Description Retrieve all orders for the authenticated user
+// @Tags Orders
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response{data=object{orders=[]models.Order}} "Orders retrieved successfully"
+// @Failure 401 {object} utils.Response "Unauthorized"
+// @Failure 500 {object} utils.Response "Internal server error"
+// @Router /orders [get]
 func GetOrders(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
@@ -62,6 +81,15 @@ func GetOrders(c *gin.Context) {
 }
 
 // WebhookHandler handles Stripe webhook events
+// @Summary Handle Stripe webhook
+// @Description Process Stripe webhook events for payment status updates
+// @Tags Webhooks
+// @Accept json
+// @Produce json
+// @Param Stripe-Signature header string true "Stripe webhook signature"
+// @Success 200 {object} utils.Response{data=object{received=bool}} "Webhook processed"
+// @Failure 400 {object} utils.Response "Bad request - invalid signature or payload"
+// @Router /webhook/stripe [post]
 func WebhookHandler(c *gin.Context) {
 	payload, err := c.GetRawData()
 	if err != nil {

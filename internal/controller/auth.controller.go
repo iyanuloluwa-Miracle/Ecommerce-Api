@@ -8,17 +8,30 @@ import (
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/utils"
 )
 
+// RegisterRequest represents the register request body
+// @Description User registration request
 type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Email    string `json:"email" binding:"required,email" example:"user@example.com"`
+	Password string `json:"password" binding:"required,min=6" example:"password123"`
 }
 
+// LoginRequest represents the login request body
+// @Description User login request
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email" example:"user@example.com"`
+	Password string `json:"password" binding:"required" example:"password123"`
 }
 
 // Register creates a new user account
+// @Summary Register a new user
+// @Description Create a new user account with email and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Registration details"
+// @Success 201 {object} utils.Response{data=nil} "User created successfully"
+// @Failure 400 {object} utils.Response "Bad request - validation error or user already exists"
+// @Router /auth/register [post]
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,6 +48,16 @@ func Register(c *gin.Context) {
 }
 
 // Login authenticates a user and returns a JWT token
+// @Summary Login user
+// @Description Authenticate user and return JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login credentials"
+// @Success 200 {object} utils.Response{data=object{token=string}} "Login successful with JWT token"
+// @Failure 400 {object} utils.Response "Bad request - validation error"
+// @Failure 401 {object} utils.Response "Unauthorized - invalid credentials"
+// @Router /auth/login [post]
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
