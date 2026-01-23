@@ -5,7 +5,8 @@ A RESTful e-commerce API built with Go, Gin framework, MongoDB, and Stripe for p
 ## Table of Contents
 
 - [Overview](#overview)
-- [Fixes Applied](#fixes-applied)
+- [Response Format](#response-format)
+- [API Documentation](#api-documentation)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
@@ -34,6 +35,71 @@ This API provides a complete e-commerce backend with the following features:
 
 ---
 
+## Response Format
+
+All API endpoints return responses in a standardized JSON format:
+
+### Success Response
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    // Response data here
+  }
+}
+```
+
+### Error Response
+```json
+{
+  "success": false,
+  "message": "Error description here"
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | boolean | Indicates if the request was successful |
+| `message` | string | Human-readable message describing the result |
+| `data` | object | Response payload (only present on success with data) |
+
+---
+
+## API Documentation
+
+### Swagger UI
+
+Interactive API documentation is available at:
+
+```
+http://localhost:8080/swagger/index.html
+```
+
+The Swagger UI provides:
+- Complete API endpoint documentation
+- Request/response schemas
+- Interactive testing capabilities
+- Authentication support
+
+### Postman Collection
+
+A Postman collection is available at `postman/E-Commerce_API.postman_collection.json`.
+
+**To import:**
+1. Open Postman
+2. Click **Import** → **Upload Files**
+3. Select `E-Commerce_API.postman_collection.json`
+4. The collection will include all endpoints with example requests/responses
+
+**Collection Variables:**
+- `base_url`: API base URL (default: `http://localhost:8080/api`)
+- `token`: JWT token (auto-populated after login)
+
+---
+
 ## Architecture
 
 ```
@@ -45,6 +111,10 @@ ecommerce-api/
 │   ├── config.go                # Environment loading
 │   ├── database.go              # MongoDB connection
 │   └── stripe.go                # Stripe initialization
+├── docs/                        # Swagger documentation
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
 ├── internal/
 │   ├── controller/              # HTTP handlers
 │   │   ├── auth.controller.go
@@ -74,7 +144,10 @@ ecommerce-api/
 │   │   └── product.service.go
 │   └── utils/                   # Utility functions
 │       ├── jwt.go
-│       └── password.go
+│       ├── password.go
+│       └── response.go          # Standardized response helper
+├── postman/                     # Postman collection
+│   └── E-Commerce_API.postman_collection.json
 ├── .env                         # Environment variables
 ├── go.mod                       # Go module file
 └── go.sum                       # Dependency checksums
@@ -123,6 +196,7 @@ ecommerce-api/
    ```
 
 The API will be available at `http://localhost:8080`
+Swagger docs available at `http://localhost:8080/swagger/index.html`
 
 ---
 
@@ -153,8 +227,11 @@ GET /api/health
 **Response:**
 ```json
 {
-  "status": "ok",
-  "message": "API is running"
+  "success": true,
+  "message": "API is running",
+  "data": {
+    "status": "ok"
+  }
 }
 ```
 
@@ -178,6 +255,7 @@ POST /api/auth/register
 **Response (201 Created):**
 ```json
 {
+  "success": true,
   "message": "user created successfully"
 }
 ```
@@ -185,7 +263,8 @@ POST /api/auth/register
 **Error Response (400 Bad Request):**
 ```json
 {
-  "error": "user already exists"
+  "success": false,
+  "message": "user already exists"
 }
 ```
 
@@ -207,15 +286,19 @@ POST /api/auth/login
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "login successful",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
 
 **Error Response (401 Unauthorized):**
 ```json
 {
-  "error": "invalid credentials"
+  "success": false,
+  "message": "invalid credentials"
 }
 ```
 
@@ -231,16 +314,20 @@ GET /api/products
 **Response (200 OK):**
 ```json
 {
-  "products": [
-    {
-      "id": "507f1f77bcf86cd799439011",
-      "name": "Wireless Headphones",
-      "description": "High-quality wireless headphones",
-      "price": 99.99,
-      "stock": 50,
-      "created_at": "2026-01-22T10:00:00Z"
-    }
-  ]
+  "success": true,
+  "message": "products retrieved successfully",
+  "data": {
+    "products": [
+      {
+        "id": "507f1f77bcf86cd799439011",
+        "name": "Wireless Headphones",
+        "description": "High-quality wireless headphones",
+        "price": 99.99,
+        "stock": 50,
+        "created_at": "2026-01-22T10:00:00Z"
+      }
+    ]
+  }
 }
 ```
 
@@ -254,13 +341,17 @@ GET /api/products/:id
 **Response (200 OK):**
 ```json
 {
-  "product": {
-    "id": "507f1f77bcf86cd799439011",
-    "name": "Wireless Headphones",
-    "description": "High-quality wireless headphones",
-    "price": 99.99,
-    "stock": 50,
-    "created_at": "2026-01-22T10:00:00Z"
+  "success": true,
+  "message": "product retrieved successfully",
+  "data": {
+    "product": {
+      "id": "507f1f77bcf86cd799439011",
+      "name": "Wireless Headphones",
+      "description": "High-quality wireless headphones",
+      "price": 99.99,
+      "stock": 50,
+      "created_at": "2026-01-22T10:00:00Z"
+    }
   }
 }
 ```
@@ -268,7 +359,8 @@ GET /api/products/:id
 **Error Response (404 Not Found):**
 ```json
 {
-  "error": "product not found"
+  "success": false,
+  "message": "product not found"
 }
 ```
 
@@ -297,6 +389,7 @@ POST /api/cart/add
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "item added to cart"
 }
 ```
@@ -304,7 +397,8 @@ POST /api/cart/add
 **Error Response (400 Bad Request):**
 ```json
 {
-  "error": "insufficient stock"
+  "success": false,
+  "message": "insufficient stock"
 }
 ```
 
@@ -325,6 +419,7 @@ DELETE /api/cart/remove
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "item removed from cart"
 }
 ```
@@ -339,15 +434,19 @@ GET /api/cart
 **Response (200 OK):**
 ```json
 {
-  "cart": {
-    "id": "507f1f77bcf86cd799439012",
-    "user_id": "507f1f77bcf86cd799439010",
-    "items": [
-      {
-        "product_id": "507f1f77bcf86cd799439011",
-        "quantity": 2
-      }
-    ]
+  "success": true,
+  "message": "cart retrieved successfully",
+  "data": {
+    "cart": {
+      "id": "507f1f77bcf86cd799439012",
+      "user_id": "507f1f77bcf86cd799439010",
+      "items": [
+        {
+          "product_id": "507f1f77bcf86cd799439011",
+          "quantity": 2
+        }
+      ]
+    }
   }
 }
 ```
@@ -369,16 +468,20 @@ Authorization: Bearer <token>
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "checkout session created",
-  "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_...",
-  "session_id": "cs_test_..."
+  "data": {
+    "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_...",
+    "session_id": "cs_test_..."
+  }
 }
 ```
 
 **Error Response (400 Bad Request):**
 ```json
 {
-  "error": "cart is empty"
+  "success": false,
+  "message": "cart is empty"
 }
 ```
 
@@ -397,22 +500,26 @@ Authorization: Bearer <token>
 **Response (200 OK):**
 ```json
 {
-  "orders": [
-    {
-      "id": "507f1f77bcf86cd799439013",
-      "user_id": "507f1f77bcf86cd799439010",
-      "items": [
-        {
-          "product_id": "507f1f77bcf86cd799439011",
-          "quantity": 2
-        }
-      ],
-      "total_amount": 199.98,
-      "payment_status": "paid",
-      "stripe_session": "cs_test_...",
-      "created_at": "2026-01-22T11:00:00Z"
-    }
-  ]
+  "success": true,
+  "message": "orders retrieved successfully",
+  "data": {
+    "orders": [
+      {
+        "id": "507f1f77bcf86cd799439013",
+        "user_id": "507f1f77bcf86cd799439010",
+        "items": [
+          {
+            "product_id": "507f1f77bcf86cd799439011",
+            "quantity": 2
+          }
+        ],
+        "total_amount": 199.98,
+        "payment_status": "paid",
+        "stripe_session": "cs_test_...",
+        "created_at": "2026-01-22T11:00:00Z"
+      }
+    ]
+  }
 }
 ```
 
@@ -440,14 +547,17 @@ POST /api/admin/products
 **Response (201 Created):**
 ```json
 {
+  "success": true,
   "message": "product created",
-  "product": {
-    "id": "507f1f77bcf86cd799439014",
-    "name": "New Product",
-    "description": "Product description",
-    "price": 49.99,
-    "stock": 100,
-    "created_at": "2026-01-22T12:00:00Z"
+  "data": {
+    "product": {
+      "id": "507f1f77bcf86cd799439014",
+      "name": "New Product",
+      "description": "Product description",
+      "price": 49.99,
+      "stock": 100,
+      "created_at": "2026-01-22T12:00:00Z"
+    }
   }
 }
 ```
@@ -470,6 +580,7 @@ PUT /api/admin/products/:id
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "product updated"
 }
 ```
@@ -484,6 +595,7 @@ DELETE /api/admin/products/:id
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "product deleted"
 }
 ```
@@ -602,7 +714,8 @@ All endpoints return consistent error responses:
 
 ```json
 {
-  "error": "error message here"
+  "success": false,
+  "message": "error message here"
 }
 ```
 
