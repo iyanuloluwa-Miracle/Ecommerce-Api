@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/models"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/services"
+	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -28,10 +29,10 @@ type UpdateProductRequest struct {
 func GetProducts(c *gin.Context) {
 	products, err := services.ListProducts()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch products"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to fetch products")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"products": products})
+	utils.SuccessResponse(c, http.StatusOK, "products retrieved successfully", gin.H{"products": products})
 }
 
 // GetProduct returns a single product by ID
@@ -39,23 +40,23 @@ func GetProduct(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "invalid product ID")
 		return
 	}
 
 	product, err := services.GetProductByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		utils.ErrorResponse(c, http.StatusNotFound, "product not found")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"product": product})
+	utils.SuccessResponse(c, http.StatusOK, "product retrieved successfully", gin.H{"product": product})
 }
 
 // CreateProduct creates a new product (admin only)
 func CreateProduct(c *gin.Context) {
 	var req CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -68,11 +69,11 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	if err := services.CreateProduct(product); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create product"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to create product")
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "product created", "product": product})
+	utils.SuccessResponse(c, http.StatusCreated, "product created", gin.H{"product": product})
 }
 
 // UpdateProduct updates an existing product (admin only)
@@ -80,22 +81,22 @@ func UpdateProduct(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "invalid product ID")
 		return
 	}
 
 	var req UpdateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := services.UpdateProduct(id, req.Name, req.Description, req.Price, req.Stock); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update product"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to update product")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "product updated"})
+	utils.SuccessResponse(c, http.StatusOK, "product updated", nil)
 }
 
 // DeleteProduct deletes a product (admin only)
@@ -103,14 +104,14 @@ func DeleteProduct(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
+		utils.ErrorResponse(c, http.StatusBadRequest, "invalid product ID")
 		return
 	}
 
 	if err := services.DeleteProduct(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete product"})
+		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to delete product")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "product deleted"})
+	utils.SuccessResponse(c, http.StatusOK, "product deleted", nil)
 }
