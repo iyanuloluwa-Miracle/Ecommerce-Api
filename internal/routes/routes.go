@@ -1,17 +1,26 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	controllers "github.com/iyanuloluwa-Miracle/ecommerce-api/internal/controller"
 	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/middleware"
+	"github.com/iyanuloluwa-Miracle/ecommerce-api/internal/utils"
 )
 
 func RegisterRoutes(r *gin.Engine) {
 	api := r.Group("/api")
 
 	// Health check endpoint
+	// @Summary Health check
+	// @Description Check if the API is running
+	// @Tags Health
+	// @Produce json
+	// @Success 200 {object} utils.Response{data=object{status=string}} "API is running"
+	// @Router /health [get]
 	api.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok", "message": "API is running"})
+		utils.SuccessResponse(c, http.StatusOK, "API is running", gin.H{"status": "ok"})
 	})
 
 	// Authentication routes
