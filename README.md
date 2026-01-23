@@ -34,59 +34,6 @@ This API provides a complete e-commerce backend with the following features:
 
 ---
 
-## Fixes Applied
-
-The following issues were identified and fixed in the codebase:
-
-### 1. **Empty Implementation Files**
-| File | Issue | Fix |
-|------|-------|-----|
-| `internal/utils/jwt.go` | Empty file | Implemented JWT token generation and validation using `golang-jwt/jwt/v5` |
-| `internal/utils/password.go` | Empty file | Implemented password hashing using `bcrypt` |
-| `internal/controller/product.controller.go` | Empty file | Implemented full CRUD operations for products |
-| `internal/controller/cart.controller.go` | Empty file | Implemented cart management endpoints |
-| `internal/controller/order.controller.go` | Empty file | Implemented checkout and order endpoints |
-| `internal/services/payment.service.go` | Empty file | Implemented Stripe checkout session creation and webhook handling |
-| `config/env.go` | Empty file | Removed (unnecessary, functionality in `config.go`) |
-
-### 2. **Incorrect Import Paths**
-- **Issue**: All files used `ecommerce/internal/...` instead of the module path
-- **Fix**: Updated all imports to use `github.com/iyanuloluwa-Miracle/ecommerce-api/...`
-
-### 3. **Wrong Stripe Version**
-- **Issue**: `config/stripe.go` imported `github.com/stripe/stripe-go/v75` but `go.mod` had `v76`
-- **Fix**: Updated import to `github.com/stripe/stripe-go/v76`
-
-### 4. **Routes File Missing Package Declaration**
-- **Issue**: `routes.go` had no package declaration or imports
-- **Fix**: Added proper package, imports, and enhanced with health check endpoint
-
-### 5. **Order Service Field Name Mismatch**
-- **Issue**: Used `Total` and `Status` instead of `TotalAmount` and `PaymentStatus`
-- **Fix**: Corrected field names to match the Order model
-
-### 6. **Cart Repository Issues**
-- **Issue**: No upsert option for saving carts, no error handling
-- **Fix**: Added upsert logic and proper error returns
-
-### 7. **Missing JWT Library**
-- **Issue**: No JWT library in `go.mod`
-- **Fix**: Added `github.com/golang-jwt/jwt/v5` as direct dependency
-
-### 8. **Missing JSON Tags on Models**
-- **Issue**: Product, Cart, and Order models lacked JSON tags
-- **Fix**: Added JSON tags for proper API serialization; marked password field with `json:"-"`
-
-### 9. **Incorrect Environment Configuration**
-- **Issue**: `.env` had PostgreSQL configuration but API uses MongoDB
-- **Fix**: Updated with correct MongoDB configuration and all required variables
-
-### 10. **Go Version**
-- **Issue**: `go.mod` specified non-existent Go version `1.25.6`
-- **Fix**: Updated to `go 1.21`
-
----
-
 ## Architecture
 
 ```
