@@ -1,0 +1,524 @@
+{
+	"info": {
+		"_postman_id": "ecommerce-api-collection",
+		"name": "E-Commerce API",
+		"description": "A RESTful e-commerce API built with Go, Gin framework, MongoDB, and Stripe for payment processing.\n\n## Response Format\n\nAll API responses follow a standardized format:\n\n### Success Response\n```json\n{\n  \"success\": true,\n  \"message\": \"Operation completed successfully\",\n  \"data\": {\n    // Response data here\n  }\n}\n```\n\n### Error Response\n```json\n{\n  \"success\": false,\n  \"message\": \"Error description here\"\n}\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Check API Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Check if the API is running"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"API is running\",\n  \"data\": {\n    \"status\": \"ok\"\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register a new user account"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "Created",
+							"code": 201,
+							"body": "{\n  \"success\": true,\n  \"message\": \"user created successfully\"\n}"
+						},
+						{
+							"name": "User Already Exists",
+							"status": "Bad Request",
+							"code": 400,
+							"body": "{\n  \"success\": false,\n  \"message\": \"user already exists\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set('token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login and get JWT token"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"login successful\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+						},
+						{
+							"name": "Invalid Credentials",
+							"status": "Unauthorized",
+							"code": 401,
+							"body": "{\n  \"success\": false,\n  \"message\": \"invalid credentials\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": ["{{base_url}}"],
+							"path": ["products"]
+						},
+						"description": "Get all products in the catalog"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"products retrieved successfully\",\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"507f1f77bcf86cd799439011\",\n        \"name\": \"Wireless Headphones\",\n        \"description\": \"High-quality wireless headphones\",\n        \"price\": 99.99,\n        \"stock\": 50,\n        \"created_at\": \"2026-01-22T10:00:00Z\"\n      }\n    ]\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Product ID"
+								}
+							]
+						},
+						"description": "Get a single product by ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"product retrieved successfully\",\n  \"data\": {\n    \"product\": {\n      \"id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"Wireless Headphones\",\n      \"description\": \"High-quality wireless headphones\",\n      \"price\": 99.99,\n      \"stock\": 50,\n      \"created_at\": \"2026-01-22T10:00:00Z\"\n    }\n  }\n}"
+						},
+						{
+							"name": "Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"body": "{\n  \"success\": false,\n  \"message\": \"product not found\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Add to Cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"product_id\": \"507f1f77bcf86cd799439011\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/add",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "add"]
+						},
+						"description": "Add an item to the cart"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"item added to cart\"\n}"
+						},
+						{
+							"name": "Insufficient Stock",
+							"status": "Bad Request",
+							"code": 400,
+							"body": "{\n  \"success\": false,\n  \"message\": \"insufficient stock\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"product_id\": \"507f1f77bcf86cd799439011\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/remove",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "remove"]
+						},
+						"description": "Remove an item from the cart"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"item removed from cart\"\n}"
+						}
+					]
+				},
+				{
+					"name": "View Cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart",
+							"host": ["{{base_url}}"],
+							"path": ["cart"]
+						},
+						"description": "View the user's cart"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"cart retrieved successfully\",\n  \"data\": {\n    \"cart\": {\n      \"id\": \"507f1f77bcf86cd799439012\",\n      \"user_id\": \"507f1f77bcf86cd799439010\",\n      \"items\": [\n        {\n          \"product_id\": \"507f1f77bcf86cd799439011\",\n          \"quantity\": 2\n        }\n      ]\n    }\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Checkout & Orders",
+			"item": [
+				{
+					"name": "Checkout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["checkout"]
+						},
+						"description": "Create a Stripe checkout session"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"checkout session created\",\n  \"data\": {\n    \"checkout_url\": \"https://checkout.stripe.com/c/pay/cs_test_...\",\n    \"session_id\": \"cs_test_...\"\n  }\n}"
+						},
+						{
+							"name": "Cart Empty",
+							"status": "Bad Request",
+							"code": 400,
+							"body": "{\n  \"success\": false,\n  \"message\": \"cart is empty\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Orders",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": ["{{base_url}}"],
+							"path": ["orders"]
+						},
+						"description": "Get all orders for the authenticated user"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"orders retrieved successfully\",\n  \"data\": {\n    \"orders\": [\n      {\n        \"id\": \"507f1f77bcf86cd799439013\",\n        \"user_id\": \"507f1f77bcf86cd799439010\",\n        \"items\": [\n          {\n            \"product_id\": \"507f1f77bcf86cd799439011\",\n            \"quantity\": 2\n          }\n        ],\n        \"total_amount\": 199.98,\n        \"payment_status\": \"paid\",\n        \"stripe_session\": \"cs_test_...\",\n        \"created_at\": \"2026-01-22T11:00:00Z\"\n      }\n    ]\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Create Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Product\",\n  \"description\": \"Product description\",\n  \"price\": 49.99,\n  \"stock\": 100\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/products",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "products"]
+						},
+						"description": "Create a new product (admin only)"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "Created",
+							"code": 201,
+							"body": "{\n  \"success\": true,\n  \"message\": \"product created\",\n  \"data\": {\n    \"product\": {\n      \"id\": \"507f1f77bcf86cd799439014\",\n      \"name\": \"New Product\",\n      \"description\": \"Product description\",\n      \"price\": 49.99,\n      \"stock\": 100,\n      \"created_at\": \"2026-01-22T12:00:00Z\"\n    }\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Product Name\",\n  \"price\": 59.99\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Product ID"
+								}
+							]
+						},
+						"description": "Update a product (admin only)"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"product updated\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Product ID"
+								}
+							]
+						},
+						"description": "Delete a product (admin only)"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"success\": true,\n  \"message\": \"product deleted\"\n}"
+						}
+					]
+				}
+			]
+		}
+	]
+}
